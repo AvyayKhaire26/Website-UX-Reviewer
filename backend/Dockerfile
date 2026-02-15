@@ -1,41 +1,20 @@
-FROM node:18-alpine AS builder
+FROM node:18
 
 WORKDIR /app
 
-# Install all dependencies (including dev) for build
+# Install dependencies for build
 COPY package*.json ./
 RUN npm ci
 
-# Copy source code
+# Copy source and build
 COPY . .
-
-# Build TypeScript
 RUN npm run build
 
-# Production stage
-FROM node:18-alpine
+# Install Playwright browsers
+RUN npx playwright install chromium --with-deps
 
-WORKDIR /app
-
-# Install Chromium and its dependencies for Playwright
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
-
-# Tell Playwright to use installed Chromium
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-
-# Install only production dependencies
-COPY package*.json ./
-RUN npm ci --only=production
-
-# Copy built files from builder
-COPY --from=builder /app/dist ./dist
+# Clean up dev dependencies
+RUN npm ci --only=production && npm cache clean --force
 
 EXPOSE 3000
 
