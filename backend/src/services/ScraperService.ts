@@ -17,7 +17,7 @@ export class ScraperService implements IScraperService {
       this.browser = await chromium.launch({ headless: true });
       page = await this.browser.newPage();
       
-      await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.goto(url, { waitUntil: 'networkidle', timeout: 300000 });
 
       const extractedContent: IExtractedContent = {
         title: await page.title(),
