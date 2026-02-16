@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { config, initializeDatabase, logger, reviewController, healthController } from './config';
 import { createReviewRoutes, createHealthRoutes } from './routes';
+import path from 'path';
 
 const app: Application = express();
 
@@ -18,6 +19,9 @@ app.use(morgan('combined', {
     write: (message: string) => logger.info(message.trim())
   }
 }));
+
+// Serve screenshots as static files
+app.use('/screenshots', express.static(path.join(__dirname, '../screenshots')));
 
 // Routes
 app.use('/api/v1', createReviewRoutes(reviewController));

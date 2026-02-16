@@ -4,6 +4,7 @@ import { ILLMService } from '../interfaces/ILLMService';
 import { ReviewRepository } from '../repositories/ReviewRepository';
 import { IReviewResponse } from '../interfaces/IReview';
 import { logger } from '../config';
+import path from 'path';
 
 export class ReviewService implements IReviewService {
   constructor(
@@ -16,16 +17,15 @@ export class ReviewService implements IReviewService {
     try {
       logger.info(`Creating review for URL: ${url}`);
 
-      // Step 1: Scrape website content
       const extractedContent = await this.scraperService.scrapeWebsite(url);
-
-      // Step 2: Capture screenshot
       const screenshotPath = await this.scraperService.captureScreenshot(url);
 
-      // Step 3: Generate UX review using LLM
+      // Convert local path to URL path
+      const screenshotFilename = path.basename(screenshotPath);
+      const screenshotUrl = `/screenshots/${screenshotFilename}`;
+
       const { issues, topThreeIssues, score } = await this.llmService.generateUXReview(extractedContent);
 
-      // Step 4: Save to database
       const review = await this.reviewRepository.create({
         url,
         title: extractedContent.title,
@@ -33,10 +33,9 @@ export class ReviewService implements IReviewService {
         issues,
         topThreeIssues,
         extractedContent,
-        screenshotPath,
+        screenshotPath: screenshotUrl, //URL for screenshot to send it to frontend
       });
 
-      // Step 5: Delete old reviews if more than 5
       await this.reviewRepository.deleteOldestIfMoreThanFive();
 
       logger.info(`Review created successfully with ID: ${review.id}`);
@@ -49,7 +48,7 @@ export class ReviewService implements IReviewService {
         issues: review.issues,
         topThreeIssues: review.topThreeIssues,
         extractedContent: review.extractedContent,
-        screenshotPath: review.screenshotPath,
+        screenshotPath: review.screenshotPath, // This is now a URL
         createdAt: review.createdAt,
       };
 
@@ -58,6 +57,7 @@ export class ReviewService implements IReviewService {
       throw error;
     }
   }
+
 
   async getReviewById(id: string): Promise<IReviewResponse | null> {
     try {
