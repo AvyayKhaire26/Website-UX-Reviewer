@@ -4,6 +4,7 @@ import { ILLMService } from '../interfaces/ILLMService';
 import { ReviewRepository } from '../repositories/ReviewRepository';
 import { IReviewResponse } from '../interfaces/IReview';
 import { logger } from '../config';
+import fs from 'fs';
 import path from 'path';
 
 export class ReviewService implements IReviewService {
@@ -20,9 +21,9 @@ export class ReviewService implements IReviewService {
       const extractedContent = await this.scraperService.scrapeWebsite(url);
       const screenshotPath = await this.scraperService.captureScreenshot(url);
 
-      // Convert local path to URL path
-      const screenshotFilename = path.basename(screenshotPath);
-      const screenshotUrl = `/screenshots/${screenshotFilename}`;
+      // Read screenshot and convert to base64
+      const screenshotBuffer = fs.readFileSync(screenshotPath);
+      const screenshotBase64 = screenshotBuffer.toString('base64');
 
       const { issues, topThreeIssues, score } = await this.llmService.generateUXReview(extractedContent);
 
@@ -33,13 +34,14 @@ export class ReviewService implements IReviewService {
         issues,
         topThreeIssues,
         extractedContent,
-        screenshotPath: screenshotUrl, //URL for screenshot to send it to frontend
+        screenshotPath, // Keep path for database
       });
 
       await this.reviewRepository.deleteOldestIfMoreThanFive();
 
       logger.info(`Review created successfully with ID: ${review.id}`);
 
+      // Return with base64 screenshot
       return {
         id: review.id,
         url: review.url,
@@ -48,7 +50,7 @@ export class ReviewService implements IReviewService {
         issues: review.issues,
         topThreeIssues: review.topThreeIssues,
         extractedContent: review.extractedContent,
-        screenshotPath: review.screenshotPath, // This is now a URL
+        screenshotPath: `data:image/png;base64,${screenshotBase64}`, // Return as base64
         createdAt: review.createdAt,
       };
 
@@ -57,7 +59,6 @@ export class ReviewService implements IReviewService {
       throw error;
     }
   }
-
 
   async getReviewById(id: string): Promise<IReviewResponse | null> {
     try {
@@ -68,6 +69,13 @@ export class ReviewService implements IReviewService {
         return null;
       }
 
+      // Convert screenshot to base64
+      let screenshotBase64 = '';
+      if (review.screenshotPath && fs.existsSync(review.screenshotPath)) {
+        const screenshotBuffer = fs.readFileSync(review.screenshotPath);
+        screenshotBase64 = `data:image/png;base64,${screenshotBuffer.toString('base64')}`;
+      }
+
       return {
         id: review.id,
         url: review.url,
@@ -76,7 +84,7 @@ export class ReviewService implements IReviewService {
         issues: review.issues,
         topThreeIssues: review.topThreeIssues,
         extractedContent: review.extractedContent,
-        screenshotPath: review.screenshotPath,
+        screenshotPath: screenshotBase64,
         createdAt: review.createdAt,
       };
 
@@ -91,17 +99,26 @@ export class ReviewService implements IReviewService {
       logger.info('Fetching last 5 reviews');
       const reviews = await this.reviewRepository.findLastFive();
 
-      return reviews.map((review) => ({
-        id: review.id,
-        url: review.url,
-        title: review.title,
-        score: review.score,
-        issues: review.issues,
-        topThreeIssues: review.topThreeIssues,
-        extractedContent: review.extractedContent,
-        screenshotPath: review.screenshotPath,
-        createdAt: review.createdAt,
-      }));
+      return reviews.map((review) => {
+        // Convert screenshot to base64
+        let screenshotBase64 = '';
+        if (review.screenshotPath && fs.existsSync(review.screenshotPath)) {
+          const screenshotBuffer = fs.readFileSync(review.screenshotPath);
+          screenshotBase64 = `data:image/png;base64,${screenshotBuffer.toString('base64')}`;
+        }
+
+        return {
+          id: review.id,
+          url: review.url,
+          title: review.title,
+          score: review.score,
+          issues: review.issues,
+          topThreeIssues: review.topThreeIssues,
+          extractedContent: review.extractedContent,
+          screenshotPath: screenshotBase64,
+          createdAt: review.createdAt,
+        };
+      });
 
     } catch (error) {
       logger.error('Error fetching last 5 reviews', error);

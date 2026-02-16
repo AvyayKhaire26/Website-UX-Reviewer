@@ -78,7 +78,7 @@ export const ReviewPage: React.FC = () => {
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Website Screenshot</h2>
         {reviewData.screenshotPath && (
           <img
-            src={`${API_CONFIG.BASE_URL}${reviewData.screenshotPath}`}
+            src={reviewData.screenshotPath}
             alt="Website Screenshot"
             className="w-full rounded-lg border border-gray-200"
             onError={(e) => {
@@ -87,6 +87,7 @@ export const ReviewPage: React.FC = () => {
           />
         )}
       </Card>
+
 
       {/* Top 3 Issues */}
       <div className="mb-8">

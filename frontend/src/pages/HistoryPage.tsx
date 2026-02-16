@@ -7,7 +7,6 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { useServices } from '../contexts/ServiceContext';
 import { ReviewData } from '../types/review.types';
 import { formatDate, getScoreColor } from '../utils/formatters';
-import { API_CONFIG } from '../config/api.config';
 
 export const HistoryPage: React.FC = () => {
   const [history, setHistory] = useState<ReviewData[]>([]);
@@ -131,7 +130,7 @@ export const HistoryPage: React.FC = () => {
 
               {review.screenshotPath && (
                 <img
-                  src={`${API_CONFIG.BASE_URL}${review.screenshotPath}`}
+                  src={review.screenshotPath}
                   alt="Screenshot"
                   className="w-32 h-24 object-cover rounded-lg border border-gray-200 ml-4"
                   onError={(e) => {
