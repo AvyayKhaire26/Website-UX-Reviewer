@@ -15,7 +15,7 @@
 ## Education
 
 **Veermata Jijabai Technological Institute (VJTI)**  
-Bachelor of Technology in Computer Engineering  
+Master of Technology in Computer Engineering  
 2023 - 2025
 
 ## Professional Experience
@@ -28,12 +28,6 @@ Bachelor of Technology in Computer Engineering
 - Component architecture and state management
 - API integration and testing
 - Code reviews and documentation
-
-**Skills:**
-- RESTful API development
-- Microservices architecture
-- Database design and optimization
-- Authentication and authorization
 
 ## Technical Skills
 
@@ -58,8 +52,6 @@ Bachelor of Technology in Computer Engineering
 
 ### Databases
 - PostgreSQL
-- MongoDB
-- Redis
 - MySQL
 
 ### DevOps & Tools
