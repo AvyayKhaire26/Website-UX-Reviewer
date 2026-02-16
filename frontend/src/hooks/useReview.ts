@@ -9,7 +9,7 @@ export const useReview = () => {
   const [error, setError] = useState<string | null>(null);
   const [reviewData, setReviewData] = useState<ReviewData | null>(null);
 
-  const submitReview = async (url: string) => {
+  const submitReview = async (url: string): Promise<ReviewData> => {
     setLoading(true);
     setError(null);
     setReviewData(null);
@@ -19,11 +19,14 @@ export const useReview = () => {
 
     if (response.success && response.data) {
       setReviewData(response.data);
+      setLoading(false);
+      return response.data; // Return the data
     } else {
-      setError(response.error || 'Failed to review website');
+      const errorMsg = response.error || 'Failed to review website';
+      setError(errorMsg);
+      setLoading(false);
+      throw new Error(errorMsg);
     }
-
-    setLoading(false);
   };
 
   return { loading, error, reviewData, submitReview };

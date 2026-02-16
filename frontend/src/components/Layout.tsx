@@ -10,6 +10,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navLinks = [
     { path: '/', label: 'Home' },
+    { path: '/compare', label: 'Compare' },
     { path: '/history', label: 'History' },
     { path: '/status', label: 'Status' },
   ];
