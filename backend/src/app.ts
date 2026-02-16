@@ -6,16 +6,17 @@ import morgan from 'morgan';
 import { config, initializeDatabase, logger, reviewController, healthController } from './config';
 import { createReviewRoutes, createHealthRoutes } from './routes';
 import path from 'path';
+import fs from 'fs';
 
 const app: Application = express();
 
-// Configure helmet BEFORE other middleware
+// Configure helmet
 app.use(helmet({
-  crossOriginResourcePolicy: false, // Disable to allow cross-origin images
+  crossOriginResourcePolicy: false,
   crossOriginEmbedderPolicy: false,
 }));
 
-// Simple CORS - Just whitelist both URLs
+// Simple CORS
 const allowedOrigins = [
   'http://localhost:5173',
   'https://website-ux-reviewer.vercel.app'
@@ -36,23 +37,33 @@ app.use(morgan('combined', {
   }
 }));
 
-// IMPORTANT: Set CORS headers for screenshots BEFORE serving static files
-app.use('/screenshots', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
-  res.setHeader('Cache-Control', 'public, max-age=31536000');
-  next();
-});
-
-// Serve screenshots as static files
-app.use('/screenshots', express.static(path.join(__dirname, '../screenshots'), {
-  setHeaders: (res, path) => {
+// API endpoint to serve screenshots (FULL CONTROL over headers)
+app.get('/screenshots/:filename', (req, res) => {
+  try {
+    const filename = req.params.filename;
+    const filepath = path.join(__dirname, '../screenshots', filename);
+    
+    // Check if file exists
+    if (!fs.existsSync(filepath)) {
+      return res.status(404).json({ error: 'Screenshot not found' });
+    }
+    
+    // Set ALL necessary headers for cross-origin images
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', '*');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=31536000');
+    
+    // Send file
+    res.sendFile(filepath);
+  } catch (error) {
+    logger.error('Error serving screenshot', error);
+    res.status(500).json({ error: 'Failed to serve screenshot' });
   }
-}));
+});
 
 // Routes
 app.use('/api/v1', createReviewRoutes(reviewController));
@@ -67,7 +78,8 @@ app.get('/', (req, res) => {
       health: '/api/v1/health',
       createReview: 'POST /api/v1/review',
       getReviews: 'GET /api/v1/reviews',
-      getReviewById: 'GET /api/v1/review/:id'
+      getReviewById: 'GET /api/v1/review/:id',
+      screenshot: 'GET /screenshots/:filename'
     }
   });
 });
