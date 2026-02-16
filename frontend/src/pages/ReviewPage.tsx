@@ -7,12 +7,15 @@ import { IssueCard } from '../components/IssueCard';
 import { TopIssueCard } from '../components/TopIssueCard';
 import { ReviewData, Issue } from '../types/review.types';
 import { formatDate } from '../utils/formatters';
-import { API_CONFIG } from '../config/api.config';
 
 export const ReviewPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const reviewData = location.state?.reviewData as ReviewData | undefined;
+
+  const handleExportPDF = () => {
+    window.print();
+  };
 
   if (!reviewData) {
     return (
@@ -45,10 +48,13 @@ export const ReviewPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
+      {/* Header with Back and Export buttons */}
+      <div className="mb-8 flex justify-between items-center">
         <Button variant="secondary" onClick={() => navigate('/')}>
           ← Back to Home
+        </Button>
+        <Button variant="primary" onClick={handleExportPDF}>
+          📄 Export PDF
         </Button>
       </div>
 
@@ -88,7 +94,6 @@ export const ReviewPage: React.FC = () => {
         )}
       </Card>
 
-
       {/* Top 3 Issues */}
       <div className="mb-8">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
@@ -122,7 +127,7 @@ export const ReviewPage: React.FC = () => {
       </div>
 
       {/* Actions */}
-      <Card>
+      <Card className="print:hidden">
         <div className="flex gap-4 justify-center">
           <Button variant="primary" onClick={() => navigate('/')}>
             Analyze Another Website

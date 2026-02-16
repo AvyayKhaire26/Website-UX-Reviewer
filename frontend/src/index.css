@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* Print styles for PDF export */
+@media print {
+  /* Hide navigation and buttons */
+  header, footer, button {
+    display: none !important;
+  }
+  
+  /* Optimize page breaks */
+  .card {
+    page-break-inside: avoid;
+  }
+  
+  /* Full width for print */
+  body {
+    margin: 0;
+    padding: 20px;
+  }
+}
