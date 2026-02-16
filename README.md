@@ -48,40 +48,6 @@ An AI-powered web application that analyzes websites and provides comprehensive 
 - **Repository Pattern:** Database abstraction layer
 - **Interface-based Design:** Loose coupling between components
 
-## 📦 Project Structure
-
-Website-UX-Reviewer/
-├── backend/
-│ ├── src/
-│ │ ├── config/ # Database, logger, DI container
-│ │ ├── controllers/ # Request handlers
-│ │ ├── services/ # Business logic
-│ │ ├── repositories/ # Database operations
-│ │ ├── interfaces/ # TypeScript interfaces
-│ │ ├── entities/ # TypeORM entities
-│ │ ├── routes/ # API routes
-│ │ └── app.ts # Express app setup
-│ ├── screenshots/ # Generated screenshots
-│ └── package.json
-│
-├── frontend/
-│ ├── src/
-│ │ ├── components/ # Reusable UI components
-│ │ ├── pages/ # Page components
-│ │ ├── contexts/ # React Context (DI)
-│ │ ├── hooks/ # Custom hooks
-│ │ ├── api/ # API service layer
-│ │ ├── types/ # TypeScript types
-│ │ ├── utils/ # Helper functions
-│ │ └── config/ # Configuration
-│ └── package.json
-│
-├── README.md
-├── AI_NOTES.md
-├── ABOUTME.md
-└── PROMPTS_USED.md
-
-
 ## 🚀 How to Run Locally
 
 ### Prerequisites
