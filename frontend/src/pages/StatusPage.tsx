@@ -304,7 +304,7 @@ export const StatusPage: React.FC = () => {
           <div className="flex justify-between">
             <span className="text-gray-600">Backend URL:</span>
             <span className="font-mono text-gray-800">
-              {import.meta.env.BACKEND_API_URL || 'http://localhost:3000'}
+              {import.meta.env.VITE_API_URL || 'http://localhost:3000'}
             </span>
           </div>
           <div className="flex justify-between">
