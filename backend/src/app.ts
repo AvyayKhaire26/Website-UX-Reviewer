@@ -9,9 +9,10 @@ import path from 'path';
 
 const app: Application = express();
 
-// Helmet with CORS support
+// Configure helmet BEFORE other middleware
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: false, // Disable to allow cross-origin images
+  crossOriginEmbedderPolicy: false,
 }));
 
 // Simple CORS - Just whitelist both URLs
@@ -35,17 +36,23 @@ app.use(morgan('combined', {
   }
 }));
 
-// CORS middleware for static files (screenshots)
+// IMPORTANT: Set CORS headers for screenshots BEFORE serving static files
 app.use('/screenshots', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  res.setHeader('Cache-Control', 'public, max-age=31536000');
   next();
 });
 
 // Serve screenshots as static files
-app.use('/screenshots', express.static(path.join(__dirname, '../screenshots')));
+app.use('/screenshots', express.static(path.join(__dirname, '../screenshots'), {
+  setHeaders: (res, path) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  }
+}));
 
 // Routes
 app.use('/api/v1', createReviewRoutes(reviewController));
