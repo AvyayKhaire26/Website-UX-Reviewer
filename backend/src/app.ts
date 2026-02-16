@@ -9,12 +9,16 @@ import path from 'path';
 
 const app: Application = express();
 
-// Middleware
-app.use(helmet());
+// Helmet with CORS support
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
-const allowedOrigins = process.env.FRONTEND_URL 
-  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-  : ['http://localhost:5173'];
+// Simple CORS - Just whitelist both URLs
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://website-ux-reviewer.vercel.app'
+];
 
 app.use(cors({
   origin: allowedOrigins,
@@ -31,7 +35,7 @@ app.use(morgan('combined', {
   }
 }));
 
-// CORS middleware for static files
+// CORS middleware for static files (screenshots)
 app.use('/screenshots', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -53,10 +57,10 @@ app.get('/', (req, res) => {
     message: 'Website UX Reviewer API',
     version: '1.0.0',
     endpoints: {
-      health: '/api/status',
-      createReview: 'POST /api/review',
-      getReviews: 'GET /api/reviews',
-      getReviewById: 'GET /api/reviews/:id'
+      health: '/api/v1/health',
+      createReview: 'POST /api/v1/review',
+      getReviews: 'GET /api/v1/reviews',
+      getReviewById: 'GET /api/v1/review/:id'
     }
   });
 });
@@ -74,6 +78,7 @@ const startServer = async () => {
     app.listen(config.port, () => {
       logger.info(`Server running on port ${config.port}`);
       logger.info(`Environment: ${config.nodeEnv}`);
+      logger.info(`CORS: Allowing ${allowedOrigins.join(', ')}`);
     });
   } catch (error) {
     logger.error('Failed to start server', error);
