@@ -9,18 +9,7 @@ export class ReviewController {
     try {
       const { url } = req.body;
 
-      if (!url) {
-        res.status(400).json({ error: 'URL is required' });
-        return;
-      }
-
-      // Basic URL validation
-      const urlPattern = /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/;
-      if (!urlPattern.test(url)) {
-        res.status(400).json({ error: 'Invalid URL format' });
-        return;
-      }
-
+      // No manual validation needed - middleware handles it!
       logger.info(`Received request to create review for: ${url}`);
 
       const review = await this.reviewService.createReview(url);
