@@ -7,6 +7,7 @@ import { config, initializeDatabase, logger, reviewController, healthController 
 import { createReviewRoutes, createHealthRoutes } from './routes';
 import path from 'path';
 import fs from 'fs';
+import { apiLimiter, reviewLimiter } from './middleware/rateLimiter';
 
 const app: Application = express();
 
@@ -37,18 +38,20 @@ app.use(morgan('combined', {
   }
 }));
 
+// Rate limiting
+app.use('/api/', apiLimiter);
+app.post('/api/v1/review', reviewLimiter);
+
 // API endpoint to serve screenshots (FULL CONTROL over headers)
 app.get('/screenshots/:filename', (req, res) => {
   try {
     const filename = req.params.filename;
     const filepath = path.join(__dirname, '../screenshots', filename);
-    
-    // Check if file exists
+
     if (!fs.existsSync(filepath)) {
       return res.status(404).json({ error: 'Screenshot not found' });
     }
-    
-    // Set ALL necessary headers for cross-origin images
+
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', '*');
@@ -56,8 +59,7 @@ app.get('/screenshots/:filename', (req, res) => {
     res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=31536000');
-    
-    // Send file
+
     res.sendFile(filepath);
   } catch (error) {
     logger.error('Error serving screenshot', error);
@@ -93,7 +95,7 @@ app.use((req, res) => {
 const startServer = async () => {
   try {
     await initializeDatabase();
-    
+
     app.listen(config.port, () => {
       logger.info(`Server running on port ${config.port}`);
       logger.info(`Environment: ${config.nodeEnv}`);
